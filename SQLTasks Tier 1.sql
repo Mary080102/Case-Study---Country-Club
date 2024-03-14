@@ -174,11 +174,35 @@ QUESTIONS:
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
 
+SELECT f.name,
+SUM(CASE WHEN b.memid = 0 THEN b.slots * f.guestcost ELSE b.slots * f.membercost END) AS total_revenue
+FROM Facilities AS f
+INNER JOIN Bookings AS b ON f.facid = b.facid
+GROUP BY f.name
+HAVING total_revenue < 1000;
+
 /* Q11: Produce a report of members and who recommended them in alphabetic surname,firstname order */
 
+SELECT m1.surname || ', ' || m1.firstname AS member,
+       m2.surname || ', ' || m2.firstname AS recommender
+FROM Members m1
+LEFT JOIN Members m2 ON m1.recommendedby = m2.memid
+ORDER BY m1.surname, m1.firstname;
 
 /* Q12: Find the facilities with their usage by member, but not guests */
-
+SELECT f.name,
+	   SUM(b.slots) AS member_usage
+FROM Facilities AS f
+INNER JOIN Bookings AS b
+ON f.facid=b.facid
+WHERE b.memid!=0
+GROUP BY f.name;
 
 /* Q13: Find the facilities usage by month, but not guests */
-
+SELECT f.name, 
+       strftime('%Y-%m', b.starttime) AS month, 
+       SUM(b.slots) AS usage
+FROM Facilities AS f
+JOIN Bookings AS b ON f.facid = b.facid
+WHERE b.memid != 0
+GROUP BY f.name, month;
